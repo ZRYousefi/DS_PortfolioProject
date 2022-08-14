@@ -31,3 +31,9 @@ ___
 Database:
 
 AWS ⇒ Amazon RDS ⇒ Databases ⇒ PostgreSQL
+
+
+
+A python script that automates CSV file imports to a postgres database
+
+By: Nate from StrataScratch (nate@stratascratch.com)

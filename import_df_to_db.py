@@ -1,21 +1,25 @@
+''' import df into PostgreSQL database'''
 
 # pip install psycopg2 
+import os
 import pandas as pd
 import psycopg2 as ps
+
+from csv_to_db_automation import *
 
 # upload csv files 
 df = pd.read.csv('youtube_vids_1st_pull.csv', index_col=0)
 df.head()
 
-def connect_to_db(host_name, db_name, port, user_name, password):
+# def connect_to_db(host_name, db_name, port, user_name, password):
 
-    try: 
-        conn = ps.connect(host=host_name, database=db_name, port=port, user=user_name, password=password)
-    except ps.OperationalError as e:
-        raise e 
-    else:
-        print('Successfully connected!')
-        return conn
+#     try: 
+#         conn = ps.connect(host=host_name, database=db_name, port=port, user=user_name, password=password)
+#     except ps.OperationalError as e:
+#         raise e 
+#     else:
+#         print('Successfully connected!')
+#         return conn
 
 
 def create_table(curr):
@@ -91,15 +95,15 @@ def update_db(curr, df):
 #Main
 
 #database credentials
-host_name="localhost" # 'xxxxxxxxx.rds.amazonaws.com'
-db_name="mydatabase"
-port="port"  # '5432'
-user_name="yourusername"
-password="yourpassword"
+host="add db ip" # 'xxxxxxxxx.rds.amazonaws.com'
+dbname="add db name"
+# port="port"  # '5432'
+user="add db username"
+password="add db pwd"
 conn = None
 
 # establish a connection to db 
-conn = connect_to_db(host_name, db_name, port, user_name, password)
+conn = connect_to_db(host, dbname, user, password)
 curr = conn.cursor()
 
 
@@ -109,4 +113,37 @@ create_table(curr)
 #update data for existing videos
 new_vid_df = update_db(curr, df)
 conn.commit()
+
+
+
+# Automatically clean table and column names and import csv files into db 
+#settings
+dataset_dir = 'datasets'
+
+#configure environment and create main df
+csv_files = csv_files()
+configure_dataset_directory(csv_files, dataset_dir)
+df = create_df(dataset_dir, csv_files)
+
+for k in csv_files:
+
+    #call dataframe
+    dataframe = df[k]
+
+    #clean table name
+    tbl_name = clean_tbl_name(k)
+    
+    #clean column names
+    col_str, dataframe.columns = clean_colname(dataframe)
+    
+    #upload data to db   
+    upload_to_db(host, 
+                 dbname, 
+                 user, 
+                 password, 
+                 tbl_name, 
+                 col_str, 
+                 file=k, 
+                 dataframe=dataframe, 
+                 dataframe_columns=dataframe.columns)
 
